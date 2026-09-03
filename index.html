@@ -41,7 +41,16 @@ body{background:#fff}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="lockScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b4a8f;padding:20px">
+<div style="background:#fff;border-radius:14px;padding:32px 28px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+<div style="font-weight:800;font-size:19px;color:#0b4a8f;margin-bottom:4px">DKR GROUP</div>
+<div style="color:#8892a0;font-size:13px;margin-bottom:20px">Конструктор коммерческих предложений</div>
+<input id="lockPass" type="password" placeholder="Пароль" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #dfe3e8;border-radius:8px;font-size:15px;margin-bottom:10px">
+<button id="lockBtn" style="width:100%;padding:12px;border:0;border-radius:8px;background:#0b4a8f;color:#fff;font-size:15px;font-weight:700;cursor:pointer">Войти</button>
+<div id="lockError" style="color:#c0392b;font-size:12px;margin-top:10px;display:none">Неверный пароль</div>
+</div>
+</div>
+<div id="wrap" class="wrap" style="display:none">
 <div class="top"><div><div class="logo">DKR GROUP</div><div class="muted mini">Конструктор коммерческих предложений</div></div><div class="muted">КП-2026-001</div></div>
 
 <div class="layout">
@@ -561,6 +570,18 @@ E("softenerToggle").onclick=()=>{softenerOn=!softenerOn;renderWaterTreatment();c
 E("softenerConfig").innerHTML=softenerOn?`<div class="section"><label class="muted mini">Цена (вводится вручную), ₽</label><input id="softenerPriceInput" type="number" min="0" value="${softenerPrice}" placeholder="напр. 300000"></div>`:"";
 if(E("softenerPriceInput"))E("softenerPriceInput").oninput=()=>{softenerPrice=+E("softenerPriceInput").value||0;calc()};
 }
+const SITE_PASSWORD="dkr2026";
+function unlockSite(){
+E("lockScreen").style.display="none";
+E("wrap").style.display="";
+}
+if(sessionStorage.getItem("dkr_unlocked")==="1")unlockSite();
+function tryUnlock(){
+if(E("lockPass").value===SITE_PASSWORD){sessionStorage.setItem("dkr_unlocked","1");unlockSite()}
+else{E("lockError").style.display="block"}
+}
+E("lockBtn").onclick=tryUnlock;
+E("lockPass").addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock()});
 renderAll();calc();
 </script>
 </body>
