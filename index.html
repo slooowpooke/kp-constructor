@@ -131,7 +131,12 @@ body{background:#fff}
 </section>
 
 <section class="card">
-<div class="step"><span class="num">11</span>Условия</div>
+<div class="step"><span class="num">11</span>Монтаж</div>
+<div class="choice" id="montageToggle"><span class="check">✓</span><b>Добавить монтаж оборудования</b><div class="muted">10% от стоимости оборудования. Командировочные расходы, суточные, проезд и расходные материалы приобретаются заказчиком отдельно</div></div>
+</section>
+
+<section class="card">
+<div class="step"><span class="num">12</span>Условия</div>
 <textarea id="notes" placeholder="Доставка, монтаж, сроки поставки, гарантия..."></textarea>
 </section>
 
@@ -147,7 +152,7 @@ body{background:#fff}
 </section>
 <section class="card">
 <h2>Логика расчёта</h2>
-<div class="muted mini">1. Количество постов<br>2. Старт / Стандарт<br>3. БУМ<br>4. Способы оплаты<br>5. Функции<br>6. Аксессуары<br>7. Водоподготовка<br>8. Доп. оборудование<br>9. Пылесос на посту<br>10. Самостоятельный пылесос<br>11. Итоговая спецификация и КП</div>
+<div class="muted mini">1. Количество постов<br>2. Старт / Стандарт<br>3. БУМ<br>4. Способы оплаты<br>5. Функции<br>6. Аксессуары<br>7. Водоподготовка<br>8. Доп. оборудование<br>9. Пылесос на посту<br>10. Самостоятельный пылесос<br>11. Монтаж<br>12. Итоговая спецификация и КП</div>
 </section>
 </aside>
 </div>
@@ -210,6 +215,7 @@ let osmosSysOn=false,osmosSysId="",softenerOn=false,softenerPrice=0,selectedExtr
 let vacOn=false,vacQty=null,vacModelId="",vacAddonsSelected=new Set();
 let vacSt1On=false,vacSt1Qty=1,vacSt1Addons=new Set();
 let vacSt2On=false,vacSt2Qty=1,vacSt2ModelId="",vacSt2Addons=new Set();
+let montageOn=false;
 const dryMistPayOptions=[["cash","Купюры"],["card","Банковская карта"],["qr","QR-код"],["client","Карта лояльности"]];
 const vacModels=[
 {id:"vm_elsea_basket",name:"Elsea в корзине",price:90000},
@@ -320,6 +326,7 @@ if(!E("gunholders").dataset.edited)E("gunholders").value=bumsCount*2;
 if(!E("foamguns").dataset.edited)E("foamguns").value=bumsCount*1;
 if(!E("waterguns").dataset.edited)E("waterguns").value=bumsCount*1;
 ["consoles","holders","gunholders","foamguns","waterguns"].forEach(id=>{t+=accExtraCost(id,+E(id).value||0,bumsCount)});
+if(montageOn)t+=t*0.1;
 E("total").textContent=money(t);
 let html="";
 if(pkg)html+=`<div class="summary-item"><b>Комплектация</b><span class="muted">${pkg.name} · ${posts} пост.</span></div>`;
@@ -373,6 +380,8 @@ let qty=+E(id).value||0,base=accPrices[id].mult*posts,extra=Math.max(0,qty-base)
 total+=sum;
 rows.push(`<tr><td><b>${label}</b></td><td>Норма по базе: ${base} шт (входит в пакет)${extra?`, доплата за ${extra} шт сверх нормы`:""}</td><td>${qty}</td><td>${extra?money(accPrices[id].price):"—"}</td><td>${sum?money(sum):"Входит в базу"}</td></tr>`);
 });
+if(montageOn){let montageSum=total*0.1;total+=montageSum;
+rows.push(`<tr><td><b>Монтаж оборудования</b></td><td>10% от стоимости оборудования. Командировочные расходы, суточные, проезд и расходные материалы приобретаются заказчиком отдельно</td><td>1</td><td>—</td><td>${money(montageSum)}</td></tr>`);}
 let note=E("notes").value||"Условия согласовываются дополнительно.";
 let today=new Date().toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"});
 E("preview").innerHTML=`<div class="preview">
@@ -470,11 +479,16 @@ if(selectedFuncs.has("turbodry"))t+=160000*posts;
 if(selectedFuncs.has("turbodry_dog"))t+=100000*posts;
 if(selectedFuncs.has("operator"))t+=9000*posts;
 ["consoles","holders","gunholders","foamguns","waterguns"].forEach(id=>{t+=accExtraCost(id,+E(id).value||0,posts)});
+if(montageOn)t+=t*0.1;
 return t;
 }
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-E("clear").onclick=()=>{pkg=null;bum=null;payments.clear();selectedFuncs.clear();chemExtra=0;chemType="";chemTypesSelected.clear();winter="1";degreaserType="";osmosSysOn=false;osmosSysId="";softenerOn=false;softenerPrice=0;selectedExtra.clear();extraQty={};dryMistOn=false;dryMistAromas=2;dryMistPays=new Set(["cash","card","qr","client"]);cloudCashOn=false;vacOn=false;vacQty=null;vacModelId="";vacSt1On=false;vacSt1Qty=1;vacSt1Addons.clear();vacSt2On=false;vacSt2Qty=1;vacSt2ModelId="";vacSt2Addons.clear();E("qtySink").value=0;E("qtyTable12").value=0;E("qtyTable20").value=0;E("qtyTank").value=0;E("preview").innerHTML="";E("consoles").dataset.edited="";E("holders").dataset.edited="";E("gunholders").dataset.edited="";E("foamguns").dataset.edited="";E("waterguns").dataset.edited="";renderAll();calc()};
-function renderAll(){renderPackages();renderBums();renderPayments();renderFunctions();renderFunctionConfig();renderWaterTreatment();renderExtraEquip();renderDryMist();renderCloudCash();renderVac();renderVacSt1();renderVacSt2()}
+E("clear").onclick=()=>{pkg=null;bum=null;payments.clear();selectedFuncs.clear();chemExtra=0;chemType="";chemTypesSelected.clear();winter="1";degreaserType="";osmosSysOn=false;osmosSysId="";softenerOn=false;softenerPrice=0;selectedExtra.clear();extraQty={};dryMistOn=false;dryMistAromas=2;dryMistPays=new Set(["cash","card","qr","client"]);cloudCashOn=false;vacOn=false;vacQty=null;vacModelId="";vacSt1On=false;vacSt1Qty=1;vacSt1Addons.clear();vacSt2On=false;vacSt2Qty=1;vacSt2ModelId="";vacSt2Addons.clear();montageOn=false;E("qtySink").value=0;E("qtyTable12").value=0;E("qtyTable20").value=0;E("qtyTank").value=0;E("preview").innerHTML="";E("consoles").dataset.edited="";E("holders").dataset.edited="";E("gunholders").dataset.edited="";E("foamguns").dataset.edited="";E("waterguns").dataset.edited="";renderAll();calc()};
+function renderAll(){renderPackages();renderBums();renderPayments();renderFunctions();renderFunctionConfig();renderWaterTreatment();renderExtraEquip();renderDryMist();renderCloudCash();renderVac();renderVacSt1();renderVacSt2();renderMontage()}
+function renderMontage(){
+E("montageToggle").classList.toggle("active",montageOn);
+E("montageToggle").onclick=()=>{montageOn=!montageOn;renderMontage();calc()};
+}
 function renderVacSt1(){
 E("vacSt1Toggle").classList.toggle("active",vacSt1On);
 E("vacSt1Toggle").onclick=()=>{vacSt1On=!vacSt1On;if(!vacSt1On){vacSt1Qty=1;vacSt1Addons.clear()}renderVacSt1();calc()};
