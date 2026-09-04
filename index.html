@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DKR GROUP — Конструктор КП</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -370,6 +375,9 @@ img.ph{object-fit:contain;background:var(--tint2);padding:6px}
   .doc{box-shadow:none;width:auto;padding:0}
 }
 </style>
+</head>
+<body>
+
 <div id="lockScreen">
   <div class="lock-box">
     <img id="lockLogo" alt="DKR GROUP">
@@ -1518,7 +1526,7 @@ const TERMS=[
   ["12 мес.","Гарантия с момента подписания акта пусконаладки."]
 ];
 const KP_NO="КП-2026-001";
-const ROWS_P1=7;
+const ROWS_P1=3;
 
 function today(){return new Date().toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric"})}
 function docTitle(){
@@ -1540,7 +1548,7 @@ const SPEC_HEAD=`<div class="spec-h"><div>Позиция</div><div class="spec-q
 /* Разбивка на страницы: стр. 1 — шапка, реквизиты, «О компании» и начало
    спецификации; последняя — хвост спецификации, итоги, сроки и условия;
    между ними, если позиций много, добавляются страницы только со спецификацией. */
-const ROWS_TAIL=8,ROWS_MID=18;
+const ROWS_TAIL=0,ROWS_MID=10;
 function docPages(){
   const d=buildItems(),rows=d.items;
   const first=rows.slice(0,ROWS_P1);
@@ -1553,7 +1561,7 @@ function docPages(){
   const total=2+mid.length;
   const pages=[];
   let offset=ROWS_P1;
-  pages.push(pageFirst(first,1,total));
+  pages.push(pageFirst(first,1,total,rows.length===0));
   mid.forEach(chunk=>{pages.push(pageMid(chunk,offset,pages.length+1,total));offset+=chunk.length});
   pages.push(pageLast(rest,offset,total,total,d));
   return pages;
@@ -1576,7 +1584,14 @@ function runHead(){
 function docFoot(n,total){
   return `<div class="doc-foot"><span>${COMPANY.name} · ${COMPANY.addr} · ${COMPANY.phone} · ${COMPANY.mail}</span><span>${n} / ${total}</span></div>`;
 }
-function pageFirst(rows,n,total){
+function pageFirst(rows,n,total,noItemsAtAll){
+  const specSection=rows.length?
+    `<div class="doc-sec">Спецификация оборудования</div>
+    <div class="spec">${SPEC_HEAD}${rows.map(specRow).join("")}</div>`
+    :noItemsAtAll?
+    `<div class="doc-sec">Спецификация оборудования</div>
+    <div class="spec">${SPEC_HEAD}<div class="spec-r"><div class="spec-nm"><div><div class="n">Позиции не выбраны</div></div></div><div></div><div></div><div></div></div></div>`
+    :"";
   return `<div class="doc">${docHead()}
     <div class="doc-req">
       <div><div class="l">Клиент</div><div class="v">${esc(client||"—")}</div></div>
@@ -1587,9 +1602,7 @@ function pageFirst(rows,n,total){
     <div class="doc-sec">О компании</div>
     <div class="doc-p">${esc(COMPANY.about)}</div>
     <div class="doc-stats">${COMPANY.stats.map(([v,l])=>`<div><div class="n">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("")}</div>
-    <div class="doc-sec">Спецификация оборудования</div>
-    <div class="spec">${SPEC_HEAD}${rows.map(specRow).join("")||
-      `<div class="spec-r"><div class="spec-nm"><div><div class="n">Позиции не выбраны</div></div></div><div></div><div></div><div></div></div>`}</div>
+    ${specSection}
     ${docFoot(n,total)}</div>`;
 }
 function pageMid(rows,offset,n,total){
@@ -1653,7 +1666,7 @@ function exportPdf(){
   if(!ifr){
     ifr=document.createElement("iframe");
     ifr.id="__pdfFrame";
-    ifr.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+    ifr.style.cssText="position:fixed;left:-10000px;top:0;width:794px;height:1123px;border:0";
     document.body.appendChild(ifr);
   }
   const doc=ifr.contentDocument||ifr.contentWindow.document;
@@ -1824,3 +1837,6 @@ window.addEventListener("resize",()=>{if(currentStep===LAST)fitPreview()});
 
 try{if(sessionStorage.getItem("dkr_unlocked")==="1")unlockSite()}catch(e){}
 </script>
+
+</body>
+</html>
